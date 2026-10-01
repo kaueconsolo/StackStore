@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StackStore - Marketplace de Aplicativos & Código-Fonte para Desenvolvedores</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0F172A',
+                            card: '#1E293B',
+                            border: '#334155',
+                            mint: '#00E6A2',
+                            cyan: '#06B6D4',
+                            accent: '#10B981'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #0F172A;
+            color: #F8FAFC;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0F172A;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00E6A2;
+        }
+
+        .glow-accent {
+            box-shadow: 0 0 25px -5px rgba(0, 230, 162, 0.25);
+        }
+
+        .glow-card:hover {
+            box-shadow: 0 10px 30px -10px rgba(6, 182, 212, 0.25);
+            border-color: rgba(0, 230, 162, 0.4);
+        }
+
+        .bg-grid-pattern {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #00E6A2 0%, #06B6D4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-border {
+            position: relative;
+            background: #1E293B;
+            border-radius: 0.75rem;
+        }
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 0.8rem;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(0,230,162,0.5), rgba(6,182,212,0.1));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: #334155;
+            border-radius: 8px;
+            height: 8px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            background: #00E6A2;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 230, 162, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 antialiased bg-grid-pattern min-h-screen flex flex-col justify-between">
+
+    <!-- Global Notification Toast Container -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-900/85 border-b border-slate-800 transition-all duration-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Logo -->
+                <a href="#" class="flex items-center space-x-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-400 to-cyan-500 flex items-center justify-center text-slate-950 font-bold text-xl shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-1">
+                            STACK<span class="gradient-text">STORE</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 tracking-wider font-semibold uppercase -mt-1">Dev App Marketplace</span>
+                    </div>
+                </a>
+
+                <!-- Nav Search Bar (Desktop) -->
+                <div class="hidden lg:flex items-center flex-1 max-w-md mx-8">
+                    <div class="relative w-full">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input id="navSearchInput" type="text" placeholder="Buscar apps, SaaS, scripts React, Flutter..." 
+                            class="w-full bg-slate-800/80 border border-slate-700/80 text-sm rounded-xl pl-10 pr-4 py-2 text-slate-200 placeholder-slate-400 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-all">
+                    </div>
+                </div>
+
+                <!-- Desktop Nav Links & CTA -->
+                <nav class="hidden md:flex items-center space-x-6 text-sm font-medium">
+                    <a href="#catalog" class="text-slate-300 hover:text-emerald-400 transition-colors">Catálogo</a>
+                    <a href="#how-it-works" class="text-slate-300 hover:text-emerald-400 transition-colors">Como Funciona</a>
+                    <a href="#calculator" class="text-slate-300 hover:text-emerald-400 transition-colors">Calculadora Dev</a>
+                    <a href="#guarantee" class="text-slate-300 hover:text-emerald-400 transition-colors">Garantia</a>
+                    
+                    <button onclick="openModal('announcementModal')" class="text-slate-300 hover:text-white px-3 py-2 rounded-lg border border-slate-700 hover:border-slate-500 transition-all text-xs font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-code text-emerald-400"></i> Anunciar App
+                    </button>
+                    
+                    <button onclick="showToast('Modo de demonstração de login ativado.', 'info')" class="bg-gradient-to-r from-emerald-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-500/15 transition-all transform hover:-translate-y-0.5 active:translate-y-0">
+                        Entrar / Criar Conta
+                    </button>
+                </nav>
+
+                <!-- Mobile Hamburger Button -->
+                <div class="flex items-center gap-3 md:hidden">
+                    <button id="mobileMenuBtn" class="p-2.5 text-slate-300 hover:text-white rounded-lg bg-slate-800 border border-slate-700">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobileMenu" class="hidden md:hidden border-b border-slate-800 bg-slate-900/95 backdrop-blur-lg px-4 pt-3 pb-6 space-y-4">
+            <div class="relative w-full my-2">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input id="mobileSearchInput" type="text" placeholder="Buscar apps ou templates..." 
+                    class="w-full bg-slate-800 border border-slate-700 text-sm rounded-xl pl-10 pr-4 py-2 text-slate-200 placeholder-slate-400 focus:outline-none focus:border-emerald-400">
+            </div>
+            <div class="flex flex-col space-y-3 font-medium text-slate-300">
+                <a href="#catalog" onclick="toggleMobileMenu()" class="hover:text-emerald-400 py-1 border-b border-slate-800">Catálogo</a>
+                <a href="#how-it-works" onclick="toggleMobileMenu()" class="hover:text-emerald-400 py-1 border-b border-slate-800">Como Funciona</a>
+                <a href="#calculator" onclick="toggleMobileMenu()" class="hover:text-emerald-400 py-1 border-b border-slate-800">Calculadora de Ganhos</a>
+                <a href="#guarantee" onclick="toggleMobileMenu()" class="hover:text-emerald-400 py-1">Garantias & Segurança</a>
+            </div>
+            <div class="pt-2 flex flex-col gap-2">
+                <button onclick="openModal('announcementModal'); toggleMobileMenu();" class="w-full py-2.5 rounded-xl border border-slate-700 text-slate-200 text-sm font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-code text-emerald-400"></i> Anunciar Meu Código
+                </button>
+                <button onclick="showToast('Sessão iniciada como Convidado.', 'info'); toggleMobileMenu();" class="w-full bg-gradient-to-r from-emerald-400 to-cyan-500 text-slate-950 font-bold py-2.5 rounded-xl text-sm shadow-md">
+                    Entrar na Plataforma
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow">
+        <!-- Hero Section -->
+        <section class="relative pt-12 pb-16 md:pt-20 md:pb-24 overflow-hidden">
+            <!-- Background Glow Orbs -->
+            <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute top-1/3 right-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                <!-- Tag Badge -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-emerald-500/30 text-emerald-400 text-xs font-semibold mb-6 shadow-sm">
+                    <span class="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    O Maior Ecossistema de Softwares & Codebases do Brasil
+                </div>
+
+                <!-- Main Title -->
+                <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-tight max-w-4xl mx-auto">
+                    A Maior Feira de <span class="gradient-text">Aplicativos & Código-Fonte</span> para Devs
+                </h1>
+
+                <!-- Subtitle -->
+                <p class="mt-5 text-base sm:text-lg md:text-xl text-slate-400 max-w-2xl mx-auto font-normal">
+                    Compre e venda soluções prontas, SaaS, aplicativos móveis e scripts auditados. Lance seu negócio ou monetize suas criações em minutos.
+                </p>
+
+                <!-- Search & Filter Bar in Hero -->
+                <div class="mt-8 max-w-2xl mx-auto">
+                    <div class="bg-slate-800/90 p-2 rounded-2xl border border-slate-700 shadow-2xl flex flex-col sm:flex-row items-center gap-2 backdrop-blur-md">
+                        <div class="flex items-center w-full px-3 gap-2">
+                            <i class="fa-solid fa-magnifying-glass text-slate-400 text-lg"></i>
+                            <input id="heroSearchInput" type="text" placeholder="Ex: SaaS Odontológico, React Native, Bot WhatsApp..." 
+                                class="w-full bg-transparent text-white placeholder-slate-400 text-sm py-2 focus:outline-none">
+                        </div>
+                        <button id="heroSearchBtn" class="w-full sm:w-auto bg-gradient-to-r from-emerald-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-950 font-bold px-6 py-3 rounded-xl text-sm transition-all whitespace-nowrap shadow-lg shadow-emerald-500/15">
+                            Explorar Apps
+                        </button>
+                    </div>
+
+                    <!-- Popular Quick Tags -->
+                    <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-400">
+                        <span class="font-medium text-slate-500">Mais buscados:</span>
+                        <button onclick="setSearchFilter('SaaS')" class="px-2.5 py-1 rounded-md bg-slate-800/60 hover:bg-slate-700 border border-slate-700/60 transition-all">#SaaS</button>
+                        <button onclick="setSearchFilter('React Native')" class="px-2.5 py-1 rounded-md bg-slate-800/60 hover:bg-slate-700 border border-slate-700/60 transition-all">#React Native</button>
+                        <button onclick="setSearchFilter('Flutter')" class="px-2.5 py-1 rounded-md bg-slate-800/60 hover:bg-slate-700 border border-slate-700/60 transition-all">#Flutter</button>
+                        <button onclick="setSearchFilter('Bot')" class="px-2.5 py-1 rounded-md bg-slate-800/60 hover:bg-slate-700 border border-slate-700/60 transition-all">#Bot WhatsApp</button>
+                        <button onclick="setSearchFilter('Next.js')" class="px-2.5 py-1 rounded-md bg-slate-800/60 hover:bg-slate-700 border border-slate-700/60 transition-all">#Next.js</button>
+                    </div>
+                </div>
+
+                <!-- Live Stats Counter Bar -->
+                <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                    <div class="bg-slate-800/40 border border-slate-800 p-4 rounded-2xl backdrop-blur-sm">
+                        <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono">580+</div>
+                        <div class="text-xs text-slate-400 mt-1 font-medium">Softwares & Apps Ativos</div>
+                    </div>
+                    <div class="bg-slate-800/40 border border-slate-800 p-4 rounded-2xl backdrop-blur-sm">
+                        <div class="text-2xl sm:text-3xl font-extrabold text-cyan-400 font-mono">R$ 240k+</div>
+                        <div class="text-xs text-slate-400 mt-1 font-medium">Pago a Desenvolvedores</div>
+                    </div>
+                    <div class="bg-slate-800/40 border border-slate-800 p-4 rounded-2xl backdrop-blur-sm">
+                        <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono">1.8k+</div>
+                        <div class="text-xs text-slate-400 mt-1 font-medium">Devs Cadastrados</div>
+                    </div>
+                    <div class="bg-slate-800/40 border border-slate-800 p-4 rounded-2xl backdrop-blur-sm">
+                        <div class="text-2xl sm:text-3xl font-extrabold text-cyan-400 font-mono">99.4%</div>
+                        <div class="text-xs text-slate-400 mt-1 font-medium">Aprovação em Testes</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Marketplace Section -->
+        <section id="catalog" class="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
+            
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-store text-emerald-400"></i> Catálogo de Aplicativos Prontos
+                    </h2>
+                    <p class="text-slate-400 text-sm mt-1">Navegue pelas soluções prontas para rodar e monetizar imediatamente.</p>
+                </div>
+
+                <!-- Sort Control -->
+                <div class="flex items-center gap-3">
+                    <label for="sortSelect" class="text-xs text-slate-400 font-medium whitespace-nowrap">Ordenar por:</label>
+                    <select id="sortSelect" class="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-400 cursor-pointer">
+                        <option value="popular">Mais Vendidos / Populares</option>
+                        <option value="recent">Mais Recentes</option>
+                        <option value="price-low">Menor Preço</option>
+                        <option value="price-high">Maior Preço</option>
+                        <option value="rating">Melhor Avaliados</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Category Filter Tabs -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-4 no-scrollbar mb-8 border-b border-slate-800">
+                <button class="category-btn active bg-emerald-500 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl whitespace-nowrap transition-all shadow-md" data-category="all">
+                    <i class="fa-solid fa-border-all mr-1.5"></i> Todos os Apps
+                </button>
+                <button class="category-btn bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-medium text-xs px-4 py-2.5 rounded-xl whitespace-nowrap transition-all border border-slate-700/60" data-category="saas">
+                    <i class="fa-solid fa-cloud mr-1.5 text-cyan-400"></i> SaaS & Web Apps
+                </button>
+                <button class="category-btn bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-medium text-xs px-4 py-2.5 rounded-xl whitespace-nowrap transition-all border border-slate-700/60" data-category="mobile">
+                    <i class="fa-solid fa-mobile-screen mr-1.5 text-emerald-400"></i> Mobile (React Native / Flutter)
+                </button>
+                <button class="category-btn bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-medium text-xs px-4 py-2.5 rounded-xl whitespace-nowrap transition-all border border-slate-700/60" data-category="bot">
+                    <i class="fa-solid fa-robot mr-1.5 text-purple-400"></i> Bots & Automação
+                </button>
+                <button class="category-btn bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-medium text-xs px-4 py-2.5 rounded-xl whitespace-nowrap transition-all border border-slate-700/60" data-category="boilerplate">
+                    <i class="fa-solid fa-cubes mr-1.5 text-amber-400"></i> Boilerplates & Starters
+                </button>
+                <button class="category-btn bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-medium text-xs px-4 py-2.5 rounded-xl whitespace-nowrap transition-all border border-slate-700/60" data-category="template">
+                    <i class="fa-solid fa-palette mr-1.5 text-pink-400"></i> UI Templates & Dashboards
+                </button>
+            </div>
+
+            <!-- Products Grid -->
+            <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Javascript will dynamically inject product cards here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="noResults" class="hidden py-16 text-center">
+                <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-500 text-2xl">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-200">Nenhum aplicativo encontrado</h3>
+                <p class="text-sm text-slate-400 mt-1 max-w-sm mx-auto">Tente buscar com outros termos ou selecione uma categoria diferente no filtro.</p>
+                <button onclick="resetFilters()" class="mt-4 text-xs font-semibold text-emerald-400 hover:underline">Limpar Filtros e Buscar Novamente</button>
+            </div>
+
+        </section>
+
+        <!-- Interactive Seller Profit Calculator Section -->
+        <section id="calculator" class="py-16 bg-slate-900/80 border-y border-slate-800 scroll-mt-20 relative">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    
+                    <div class="lg:col-span-5">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold mb-4">
+                            <i class="fa-solid fa-calculator"></i> Calculadora para Desenvolvedores
+                        </div>
+                        <h2 class="text-3xl font-extrabold text-white leading-tight">
+                            Quanto Você Pode Ganhar Vendendo Seus Apps na StackStore?
+                        </h2>
+                        <p class="mt-4 text-slate-400 text-sm leading-relaxed">
+                            Diferente de plataformas tradicionais que cobram até 30% em taxas, na StackStore você retém até <strong class="text-emerald-400">92% de cada venda</strong> com recebimento direto e PIX instantâneo.
+                        </p>
+
+                        <div class="mt-6 space-y-3">
+                            <div class="flex items-center gap-3 text-sm text-slate-300">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+                                <span>Publicação e hospedagem da vitrine 100% grátis</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-slate-300">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+                                <span>Aprovação rápida e auditoria automatizada de código</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-slate-300">
+                                <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+                                <span>Transferência automática de repositórios no GitHub</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-8">
+                            <button onclick="openModal('announcementModal')" class="bg-gradient-to-r from-emerald-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-950 font-bold px-6 py-3.5 rounded-xl text-sm shadow-xl shadow-emerald-500/15 flex items-center gap-2">
+                                <i class="fa-solid fa-upload"></i> Publicar Meu Primeiro Software
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Calculator Card -->
+                    <div class="lg:col-span-7">
+                        <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 md:p-8 shadow-2xl backdrop-blur-md">
+                            <h3 class="text-xl font-bold text-white mb-6 flex items-center justify-between">
+                                <span>Simulador de Rendimento Passivo</span>
+                                <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/30 font-semibold">Taxa de apenas 8%</span>
+                            </h3>
+
+                            <div class="space-y-6">
+                                <!-- Slider 1: Preço do App -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-xs font-semibold text-slate-300">Preço do seu Aplicativo / Código:</label>
+                                        <span id="priceValue" class="text-lg font-bold text-emerald-400 font-mono">R$ 299</span>
+                                    </div>
+                                    <input type="range" id="priceRange" min="50" max="2500" step="10" value="299" class="w-full cursor-pointer">
+                                    <div class="flex justify-between text-[11px] text-slate-500 mt-1 font-mono">
+                                        <span>R$ 50</span>
+                                        <span>R$ 1.250</span>
+                                        <span>R$ 2.500</span>
+                                    </div>
+                                </div>
+
+                                <!-- Slider 2: Vendas Estimadas -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-xs font-semibold text-slate-300">Vendas estimadas por mês:</label>
+                                        <span id="salesValue" class="text-lg font-bold text-cyan-400 font-mono">15 vendas</span>
+                                    </div>
+                                    <input type="range" id="salesRange" min="1" max="100" step="1" value="15" class="w-full cursor-pointer">
+                                    <div class="flex justify-between text-[11px] text-slate-500 mt-1 font-mono">
+                                        <span>1 un.</span>
+                                        <span>50 un.</span>
+                                        <span>100 un.</span>
+                                    </div>
+                                </div>
+
+                                <!-- Output Profit Box -->
+                                <div class="bg-slate-900/90 rounded-xl p-5 border border-slate-700/60 grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                                    <div>
+                                        <span class="text-xs text-slate-400 block mb-1">Seu Lucro Líquido Mensal</span>
+                                        <div id="monthlyNet" class="text-2xl sm:text-3xl font-black text-emerald-400 font-mono">R$ 4.126,20</div>
+                                        <span class="text-[10px] text-slate-500">Comissão descontada de R$ 358,80</span>
+                                    </div>
+                                    <div class="border-t sm:border-t-0 sm:border-l border-slate-800 pt-3 sm:pt-0 sm:pl-4">
+                                        <span class="text-xs text-slate-400 block mb-1">Projeção Anual Estimada</span>
+                                        <div id="yearlyNet" class="text-xl sm:text-2xl font-bold text-cyan-400 font-mono">R$ 49.514,40</div>
+                                        <span class="text-[10px] text-slate-500">Com renda recorrente de updates</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- How it works Section -->
+        <section id="how-it-works" class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-20">
+            <div class="text-center max-w-3xl mx-auto mb-14">
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-white">Como Funciona para Desenvolvedores</h2>
+                <p class="text-slate-400 text-sm mt-2">Monetize seus projetos paralelos e codebases paradas em apenas 3 passos simples.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                
+                <!-- Step 1 -->
+                <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 relative flex flex-col items-start hover:border-emerald-500/50 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl mb-5 font-mono">
+                        01
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Envie seu Projeto</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Envie o link do repositório no GitHub ou arquivo zip, defina as tecnologias usadas, documentação do produto e o preço cobrado.
+                    </p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 relative flex flex-col items-start hover:border-cyan-500/50 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-xl mb-5 font-mono">
+                        02
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Auditoria & Publicação</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Nossa equipe técnica realiza verificações automáticas de segurança e qualidade do código em até 24 horas antes do app ir ao ar.
+                    </p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-6 relative flex flex-col items-start hover:border-emerald-500/50 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl mb-5 font-mono">
+                        03
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Vendas & Repasses PIX</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Assim que um cliente compra seu código, o valor é creditado e a liberação das chaves/repositório acontece com total automação.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Security & Guarantee Section -->
+        <section id="guarantee" class="py-16 bg-slate-900/90 border-t border-slate-800 scroll-mt-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="bg-gradient-to-r from-slate-800 via-slate-800 to-slate-800/80 rounded-3xl p-8 md:p-12 border border-slate-700/80 shadow-2xl relative overflow-hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                        
+                        <div class="lg:col-span-2 space-y-4">
+                            <span class="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                                <i class="fa-solid fa-shield-halved"></i> Garantia Incondicional StackStore
+                            </span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                                Código Auditado, Testado e com 7 Dias de Garantia
+                            </h2>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                Se o código fornecido não corresponder ao demonstrado ou apresentar erros críticos de compilação sem suporte do desenvolvedor, nós reembolsamos 100% do seu pagamento.
+                            </p>
+                            <div class="flex flex-wrap gap-4 pt-2">
+                                <div class="flex items-center gap-2 text-xs text-slate-300">
+                                    <i class="fa-solid fa-lock text-emerald-400"></i> Pagamento Seguro via SSL
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-300">
+                                    <i class="fa-solid fa-file-code text-cyan-400"></i> Licença Comercial Aberta
+                                </div>
+                                <div class="flex items-center gap-2 text-xs text-slate-300">
+                                    <i class="fa-solid fa-headset text-emerald-400"></i> Suporte Técnico Direto
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col items-center justify-center p-6 bg-slate-900/80 rounded-2xl border border-slate-700/60 text-center">
+                            <i class="fa-solid fa-award text-4xl text-emerald-400 mb-3"></i>
+                            <div class="text-2xl font-black text-white font-mono">100% Auditado</div>
+                            <p class="text-xs text-slate-400 mt-1">Todos os scripts passam por varreduras estáticas de vulnerabilidade antes da publicação.</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Testimonials -->
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-800">
+                        <div class="flex items-center gap-1 text-amber-400 text-xs mb-3">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                        <p class="text-xs text-slate-300 italic mb-4">"Comprei o template do DentistFlow e consegui fechar 3 clientes em menos de duas semanas personalizando a solução. Economizei mais de 100 horas de dev."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">LR</div>
+                            <div>
+                                <div class="text-xs font-bold text-white">Lucas Rocha</div>
+                                <div class="text-[10px] text-slate-500">Desenvolvedor Freelancer</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-800">
+                        <div class="flex items-center gap-1 text-amber-400 text-xs mb-3">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                        <p class="text-xs text-slate-300 italic mb-4">"Tinha um SaaS em Next.js encostado e resolvi colocar na StackStore. Já fiz mais de R$ 12.000 em vendas passivas enquanto focado no meu emprego fixo."</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-xs">MA</div>
+                            <div>
+                                <div class="text-xs font-bold text-white">Mateus Andrade</div>
+                                <div class="text-[10px] text-slate-500">Fullstack Developer</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/40 p-5 rounded-2xl border border-slate-800">
+                        <div class="flex items-center gap-1 text-amber-400 text-xs mb-3">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                        <p class="text-xs text-slate-300 italic mb-4">"O processo de integração e transferência pelo GitHub é ultra suave. A documentação que acompanha os projetos é excelente!"</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center text-xs">CS</div>
+                            <div>
+                                <div class="text-xs font-bold text-white">Carla Silva</div>
+                                <div class="text-[10px] text-slate-500">Product Owner</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Product Detail & Demo Modal -->
+    <div id="productModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-4xl w-full my-8 shadow-2xl overflow-hidden relative flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-800/50">
+                <div class="flex items-center gap-3">
+                    <span id="modalCategoryBadge" class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        SaaS
+                    </span>
+                    <h3 id="modalTitle" class="text-lg font-extrabold text-white">
+                        Nome do App
+                    </h3>
+                </div>
+                <button onclick="closeModal('productModal')" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1">
+                
+                <!-- Main Preview / Screenshots Simulator -->
+                <div class="bg-slate-950 rounded-xl border border-slate-800 p-4 relative overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+                            <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+                            <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+                            <span id="modalDemoUrl" class="text-xs text-slate-500 font-mono ml-2">https://demo.stackstore.dev/app</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="modalTabDemo" onclick="switchModalTab('demo')" class="text-xs font-semibold px-3 py-1 rounded bg-slate-800 text-emerald-400 border border-slate-700">Preview Vivo</button>
+                            <button id="modalTabCode" onclick="switchModalTab('code')" class="text-xs font-semibold px-3 py-1 rounded text-slate-400 hover:text-white">Snippet Código</button>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Demo Frame View -->
+                    <div id="modalDemoView" class="min-h-[220px] sm:min-h-[280px] bg-slate-900 rounded-lg p-6 flex flex-col items-center justify-center text-center relative border border-slate-800">
+                        <div id="modalDemoIcon" class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-400 to-cyan-500 text-slate-950 flex items-center justify-center text-3xl font-bold mb-3 shadow-lg">
+                            <i class="fa-solid fa-laptop-code"></i>
+                        </div>
+                        <h4 id="modalDemoAppName" class="text-lg font-bold text-white mb-1">Simulador de Interface Ativo</h4>
+                        <p id="modalDemoAppDesc" class="text-xs text-slate-400 max-w-md">Este produto possui um painel administrativo pronto com suporte a multi-inquilino (multi-tenant) e gateway Pix integrado.</p>
+                        
+                        <a id="modalExternalDemoLink" href="#" target="_blank" onclick="showToast('Redirecionando para servidor de testes com sandbox ativado.', 'info')" class="mt-4 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 px-4 py-2 rounded-lg transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Demonstrativo Completo
+                        </a>
+                    </div>
+
+                    <!-- Code Snippet View (Hidden by default) -->
+                    <div id="modalCodeView" class="hidden min-h-[220px] sm:min-h-[280px] bg-slate-950 rounded-lg p-4 font-mono text-xs text-emerald-400 overflow-x-auto border border-slate-800">
+                        <pre id="modalCodeSnippet">
+// Exemplo da estrutura principal da API do App
+import { StackStoreAuth, PaymentGateway } from '@stackstore/core';
+
+export async function POST(req) {
+  const session = await StackStoreAuth.verify(req);
+  if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  
+  const payment = await PaymentGateway.createPixCharge({
+    amount: req.body.amount,
+    customer: session.user
+  });
+
+  return Response.json({ success: true, pixCode: payment.qrCode });
+}
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- Details & Tech Specs -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2 space-y-4">
+                        <h4 class="text-sm font-bold text-white uppercase tracking-wider">Descrição & Funcionalidades</h4>
+                        <p id="modalFullDescription" class="text-xs text-slate-300 leading-relaxed">
+                            Descrição detalhada do aplicativo.
+                        </p>
+
+                        <div class="pt-2">
+                            <h5 class="text-xs font-bold text-slate-200 mb-2">Recursos Principais Inclusos:</h5>
+                            <ul id="modalFeaturesList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-400">
+                                <!-- Dynamic features list -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Tech Stack & Specifications Sidebar -->
+                    <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60 space-y-4">
+                        <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Ficha Técnica</h4>
+                        
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-700/50">
+                                <span class="text-slate-400">Desenvolvedor:</span>
+                                <span id="modalAuthor" class="font-semibold text-emerald-400">Dev Studio</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-700/50">
+                                <span class="text-slate-400">Última Atualização:</span>
+                                <span id="modalUpdated" class="text-slate-200">Outubro 2026</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-700/50">
+                                <span class="text-slate-400">Tipo de Licença:</span>
+                                <span class="text-slate-200">Comercial Ilimitada</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-400">Arquivos Incluídos:</span>
+                                <span class="text-slate-200">Código-Fonte + DB Dump</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[11px] text-slate-400 font-semibold block mb-2">Tecnologias Utilizadas:</span>
+                            <div id="modalTechBadges" class="flex flex-wrap gap-1.5">
+                                <!-- Tech badges -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer / Price & Checkout CTA -->
+            <div class="p-5 border-t border-slate-800 bg-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs text-slate-400 block">Preço do Código Completo</span>
+                    <div class="flex items-baseline gap-2">
+                        <span id="modalPrice" class="text-2xl font-black text-emerald-400 font-mono">R$ 0,00</span>
+                        <span class="text-[10px] text-slate-500">Pagamento único • Sem mensalidade</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <button onclick="closeModal('productModal')" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-semibold">
+                        Fechar
+                    </button>
+                    <button id="modalBuyBtn" class="flex-1 sm:flex-initial bg-gradient-to-r from-emerald-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cart-shopping"></i> Comprar Agora
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- "Anunciar App" Submission Modal -->
+    <div id="announcementModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative my-8">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-code text-emerald-400"></i> Anunciar Meu Código na StackStore
+                </h3>
+                <button onclick="closeModal('announcementModal')" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="announcementForm" onsubmit="handleAnnouncementSubmit(event)" class="mt-4 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Nome do Aplicativo / Projeto *</label>
+                    <input type="text" required placeholder="Ex: SaaS CRM para Clínicas" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Categoria *</label>
+                        <select required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-emerald-400">
+                            <option value="saas">SaaS & Web App</option>
+                            <option value="mobile">Mobile (React Native/Flutter)</option>
+                            <option value="bot">Bot & Automação</option>
+                            <option value="boilerplate">Boilerplate / Starter</option>
+                            <option value="template">UI Template</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Preço Sugerido (R$) *</label>
+                        <input type="number" required placeholder="299" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400 font-mono">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Tecnologias (separadas por vírgula)</label>
+                    <input type="text" placeholder="React, Node.js, Tailwind, PostgreSQL" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Link do Repositório GitHub / Demo</label>
+                    <input type="url" placeholder="https://github.com/usuario/seu-repo" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400 font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Breve Descrição do Software</label>
+                    <textarea rows="3" placeholder="Explique os principais recursos e o que o comprador recebe..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-400"></textarea>
+                </div>
+
+                <div class="pt-2 flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeModal('announcementModal')" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white">Cancelar</button>
+                    <button type="submit" class="bg-gradient-to-r from-emerald-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs shadow-md">
+                        Submeter para Auditoria
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Simulated Checkout Modal -->
+    <div id="checkoutModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative my-8 text-center">
+            
+            <button onclick="closeModal('checkoutModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="fa-solid fa-qrcode"></i>
+            </div>
+
+            <h3 class="text-lg font-bold text-white">Finalizar Compra Segura</h3>
+            <p class="text-xs text-slate-400 mt-1">O código-fonte será liberado instantaneamente no seu painel.</p>
+
+            <!-- Product Summary in Checkout -->
+            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 my-4 text-left flex justify-between items-center">
+                <div>
+                    <div id="checkoutProductName" class="text-xs font-bold text-white">Nome do App</div>
+                    <div class="text-[10px] text-slate-400">Licença comercial vitalícia + Updates</div>
+                </div>
+                <div id="checkoutProductPrice" class="text-sm font-bold text-emerald-400 font-mono">R$ 0,00</div>
+            </div>
+
+            <!-- Fake PIX QR Box -->
+            <div class="bg-white p-4 rounded-xl max-w-[180px] mx-auto my-4 shadow-inner flex flex-col items-center justify-center">
+                <!-- Inline Mocked SVG QR Code -->
+                <svg class="w-32 h-32 text-slate-900" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M2,2H10V10H2V2M4,4V8H8V4H4M11,2H13V4H11V2M14,2H22V10H14V2M16,4V8H20V4H16M2,11H4V13H2V11M6,11H10V13H6V11M11,11H13V13H11V11M14,11H16V13H14V11M18,11H20V13H18V11M2,14H10V22H2V14M4,16V20H8V16H4M11,14H13V16H11V14M14,14H18V16H14V14M19,14H22V16H19V14M11,17H13V19H11V17M14,17H16V19H14V17M17,17H19V19H17V17M20,17H22V19H20V17M11,20H13V22H11V20M14,20H16V22H14V20M18,20H22V22H18V20Z"/>
+                </svg>
+                <span class="text-[9px] font-mono text-slate-600 mt-1">PIX COPIA E COLA</span>
+            </div>
+
+            <button onclick="copyPixCode()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 py-2 rounded-xl text-xs font-semibold mb-3 flex items-center justify-center gap-2">
+                <i class="fa-regular fa-copy"></i> Copiar Código PIX
+            </button>
+
+            <button onclick="simulateSuccessfulPayment()" class="w-full bg-gradient-to-r from-emerald-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs shadow-lg shadow-emerald-500/15">
+                Simular Confirmação de Pagamento
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="bg-slate-950 border-t border-slate-800 text-slate-400 text-xs py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+                
+                <div class="space-y-3">
+                    <a href="#" class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-400 to-cyan-500 flex items-center justify-center text-slate-950 font-bold text-sm">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <span class="text-lg font-bold text-white tracking-tight">STACKSTORE</span>
+                    </a>
+                    <p class="text-slate-400 leading-relaxed text-xs">
+                        O marketplace oficial para desenvolvedores negociarem aplicações completas, componentes e scripts com segurança.
+                    </p>
+                    
+                    <!-- Live Operational Status Indicator -->
+                    <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-slate-300">
+                        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Todos os sistemas operacionais
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm mb-3">Navegação</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#catalog" class="hover:text-emerald-400 transition-colors">Todos os Aplicativos</a></li>
+                        <li><a href="#catalog" onclick="setSearchFilter('SaaS')" class="hover:text-emerald-400 transition-colors">SaaS & Web Software</a></li>
+                        <li><a href="#catalog" onclick="setSearchFilter('Mobile')" class="hover:text-emerald-400 transition-colors">Apps React Native / Flutter</a></li>
+                        <li><a href="#calculator" class="hover:text-emerald-400 transition-colors">Calculadora para Devs</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm mb-3">Desenvolvedores</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#how-it-works" class="hover:text-emerald-400 transition-colors">Como Anunciar</a></li>
+                        <li><a href="#guarantee" class="hover:text-emerald-400 transition-colors">Política de Auditoria</a></li>
+                        <li><a href="#guarantee" class="hover:text-emerald-400 transition-colors">Garantia & Reembolso</a></li>
+                        <li><a href="#" onclick="showToast('Documentação da API StackStore disponível.', 'info'); return false;" class="hover:text-emerald-400 transition-colors">API de Vendas</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-sm mb-3">Comunidade Dev</h4>
+                    <p class="text-slate-400 mb-3 text-xs">Receba semanalmente novos códigos prontos e oportunidades no seu e-mail.</p>
+                    <div class="flex gap-2">
+                        <input type="email" placeholder="seu@email.com" class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-400 flex-1">
+                        <button onclick="showToast('Inscrito na newsletter do StackStore com sucesso!', 'success')" class="bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-300 transition-all">
+                            OK
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="border-t border-slate-800/80 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500">
+                <div>
+                    &copy; 2026 StackStore Inc. Todos os direitos reservados.
+                </div>
+                <div class="flex space-x-4 text-base">
+                    <a href="#" class="hover:text-slate-300"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="hover:text-slate-300"><i class="fa-brands fa-discord"></i></a>
+                    <a href="#" class="hover:text-slate-300"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#" class="hover:text-slate-300"><i class="fa-brands fa-youtube"></i></a>
+                </div>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        // Database Mock of Products
+        const productsData = [
+            {
+                id: 1,
+                title: "DentistFlow - SaaS Odontológico",
+                category: "saas",
+                price: 499,
+                rating: 4.9,
+                reviews: 28,
+                sales: 142,
+                updated: "Outubro 2026",
+                author: "ApexStudio",
+                icon: "fa-tooth",
+                gradient: "from-blue-500 to-cyan-400",
+                description: "Sistema de gestão completo para clínicas odontológicas com prontuário eletrônico, agendamento interativo WhatsApp e controle de estoque.",
+                features: [
+                    "Multi-tenant com isolamento de banco de dados",
+                    "Integração nativa com Gateway de pagamento Pix",
+                    "Agenda interativa com envio automático de SMS/WhatsApp",
+                    "Prontuário com odontograma interativo em Canvas",
+                    "Exportação de relatórios financeiros em PDF e Excel"
+                ],
+                tech: ["React", "Next.js 14", "Node.js", "PostgreSQL", "Tailwind CSS"],
+                demoUrl: "https://dentistflow-demo.stackstore.dev",
+                codeSnippet: `// Exemplo de agendamento com notificação via WhatsApp
+import { WhatsAppBot, Agenda } from '@/lib/dentistflow';
+
+export async function createAppointment(data) {
+  const appointment = await Agenda.save(data);
+  await WhatsAppBot.sendConfirmation({
+    phone: data.patientPhone,
+    date: data.scheduledAt
+  });
+  return appointment;
+}`
+            },
+            {
+                id: 2,
+                title: "FitPulse - App Mobile de Treinos",
+                category: "mobile",
+                price: 299,
+                rating: 4.8,
+                reviews: 19,
+                sales: 89,
+                updated: "Setembro 2026",
+                author: "MobileCraft",
+                icon: "fa-dumbbell",
+                gradient: "from-emerald-400 to-teal-500",
+                description: "Aplicativo mobile para personal trainers e alunos acompanharem métricas corporais, fichas de treino em vídeo e contador de calorias.",
+                features: [
+                    "Aplicativo iOS e Android em codebase única",
+                    "Modo Offline com sincronização em background",
+                    "Player de vídeo para rotinas de exercícios",
+                    "Integração com Apple Health e Google Fit",
+                    "Painel Admin Web em React para o treinador"
+                ],
+                tech: ["React Native", "Expo", "Supabase", "TypeScript", "Tailwind Native"],
+                demoUrl: "https://fitpulse-demo.stackstore.dev",
+                codeSnippet: `// Execução de treino offline com Supabase Sync
+import { useOfflineSync } from 'fitpulse-mobile';
+
+export function WorkoutTracker({ workoutId }) {
+  const { syncWorkoutProgress } = useOfflineSync();
+  // Sincronização automática quando reconectado
+  return <WorkoutView onComplete={syncWorkoutProgress} />;
+}`
+            },
+            {
+                id: 3,
+                title: "SaaS Boilerplate Pro Next.js 14",
+                category: "boilerplate",
+                price: 189,
+                rating: 5.0,
+                reviews: 54,
+                sales: 310,
+                updated: "Outubro 2026",
+                author: "DevAccelerator",
+                icon: "fa-bolt",
+                gradient: "from-amber-400 to-orange-500",
+                description: "Kit de arrancada definitivo para lançar seu SaaS em dias. Inclui autenticação, assinaturas Stripe/Asaas, banco de dados e UI pronta.",
+                features: [
+                    "Next.js 14 com App Router e Server Actions",
+                    "Autenticação NextAuth v5 com OAuth e Magic Links",
+                    "Webhooks prontos para Stripe e Asaas PIX",
+                    "Componentes UI em Shadcn UI & Tailwind CSS",
+                    "Mailing automatizado com Resend e React Email"
+                ],
+                tech: ["Next.js 14", "Prisma", "Stripe API", "Tailwind CSS", "TypeScript"],
+                demoUrl: "https://next-boilerplate.stackstore.dev",
+                codeSnippet: `// Middleware de verificação de assinatura ativa
+import { withSubscription } from '@/lib/auth-guards';
+
+export default withSubscription(async function DashboardPage(req) {
+  return <SaaSUserDashboard user={req.user} />;
+});`
+            },
+            {
+                id: 4,
+                title: "Omnichannel WhatsApp Bot & CRM",
+                category: "bot",
+                price: 349,
+                rating: 4.7,
+                reviews: 32,
+                sales: 115,
+                updated: "Outubro 2026",
+                author: "BotMaster",
+                icon: "fa-robot",
+                gradient: "from-purple-500 to-indigo-500",
+                description: "Plataforma de atendimento multi-atendente para WhatsApp com chatbot de inteligência artificial (ChatGPT) e disparador de mensagens.",
+                features: [
+                    "Multi-atendentes no mesmo número de WhatsApp",
+                    "Fila de atendimento inteligente e transferência de chats",
+                    "Integração com OpenAI API para auto-respostas com IA",
+                    "Kanban de vendas para gestão de Leads",
+                    "Disparo de campanhas em massa com intervalo de segurança"
+                ],
+                tech: ["Node.js", "Baileys API", "Vue.js 3", "MongoDB", "Express"],
+                demoUrl: "https://whatsapp-bot.stackstore.dev",
+                codeSnippet: `// Fluxo de resposta inteligente com ChatGPT
+import { OpenAIStream } from '@/services/openai';
+import { sendWhatsAppMessage } from '@/services/baileys';
+
+export async function handleIncomingMessage(chat) {
+  const reply = await OpenAIStream(chat.lastMessage);
+  await sendWhatsAppMessage(chat.from, reply);
+}`
+            },
+            {
+                id: 5,
+                title: "FoodDelivery - Multi-restaurante App",
+                category: "mobile",
+                price: 599,
+                rating: 4.9,
+                reviews: 41,
+                sales: 98,
+                updated: "Setembro 2026",
+                author: "CodecanyonTop",
+                icon: "fa-utensils",
+                gradient: "from-red-500 to-pink-500",
+                description: "Sistema completo de Delivery estilo iFood com App para Cliente, App para Entregador e Painel Web para os Restaurantes.",
+                features: [
+                    "3 Apps inclusos (Cliente, Entregador e Restaurante)",
+                    "Rastreamento de entrega em tempo real via GPS",
+                    "Cálculo automático de taxa de entrega por raio de km",
+                    "Impressão automática de comandas de pedidos",
+                    "Gerenciamento de cardápio e adicionais flexíveis"
+                ],
+                tech: ["Flutter", "Laravel 10", "MySQL", "Firebase", "Google Maps API"],
+                demoUrl: "https://fooddelivery.stackstore.dev",
+                codeSnippet: `// Atualização de Geolocalização do Entregador
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+void updateDriverLocation(Position pos) {
+  FirebaseFirestore.instance.collection('delivery_tracking').doc(orderId).update({
+    'lat': pos.latitude,
+    'lng': pos.longitude,
+  });
+}`
+            },
+            {
+                id: 6,
+                title: "CryptoTracker Dashboard UI",
+                category: "template",
+                price: 149,
+                rating: 4.6,
+                reviews: 15,
+                sales: 76,
+                updated: "Agosto 2026",
+                author: "PixelUI",
+                icon: "fa-chart-line",
+                gradient: "from-cyan-400 to-blue-600",
+                description: "Dashboard moderno para monitoramento de carteiras de criptomoedas, análise de gráficos em tempo real e cotações da CoinGecko.",
+                features: [
+                    "Dark mode nativo ultraconsolidado",
+                    "Gráficos interativos com ApexCharts e Chart.js",
+                    "Integração em tempo real com WebSockets de Exchanged",
+                    "Tabelas com paginação e busca instantânea",
+                    "Layout 100% responsivo para celular"
+                ],
+                tech: ["Vue 3", "Pinia", "Tailwind CSS", "Vite", "ApexCharts"],
+                demoUrl: "https://cryptotracker.stackstore.dev",
+                codeSnippet: `// Conexão via WebSocket para preços de Cripto
+const ws = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@ticker');
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  cryptoStore.updatePrice('BTC', data.c);
+};`
+            },
+            {
+                id: 7,
+                title: "AutoSEO AI - Gerador de Conteúdo",
+                category: "saas",
+                price: 279,
+                rating: 4.8,
+                reviews: 22,
+                sales: 104,
+                updated: "Outubro 2026",
+                author: "AILabs",
+                icon: "fa-brain",
+                gradient: "from-fuchsia-500 to-purple-600",
+                description: "Micro-SaaS alimentado por IA para criação automatizada de artigos otimizados para SEO e postagens de blogs WordPress.",
+                features: [
+                    "Integração com modelos Claude 3.5 & GPT-4o",
+                    "Publicação automática direta no WordPress via REST API",
+                    "Análise de palavras-chave e intenção de busca",
+                    "Geração automatizada de imagens com DALL-E 3",
+                    "Sistema de créditos por palavras geradas"
+                ],
+                tech: ["Python", "FastAPI", "React", "OpenAI API", "Tailwind CSS"],
+                demoUrl: "https://autoseo.stackstore.dev",
+                codeSnippet: `# Exemplo da pipeline de geração SEO em Python
+from fastapi import FastAPI
+from openai import OpenAI
+
+app = FastAPI()
+client = OpenAI()
+
+@app.post("/generate-article")
+async def generate_seo_article(topic: str):
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": f"Escreva um artigo SEO sobre {topic}"}]
+    )
+    return {"article": response.choices[0].message.content}`
+            },
+            {
+                id: 8,
+                title: "E-Commerce Mobile App Template",
+                category: "template",
+                price: 199,
+                rating: 4.7,
+                reviews: 18,
+                sales: 82,
+                updated: "Setembro 2026",
+                author: "MobileCraft",
+                icon: "fa-bag-shopping",
+                gradient: "from-emerald-400 to-cyan-500",
+                description: "Template completo de loja virtual móvel com carrinho elegante, cálculo de frete Correios/Melhor Envio e checkout rápido.",
+                features: [
+                    "Design inspirado nas maiores marcas de e-commerce do mundo",
+                    "Suporte a variações de produtos (Cor, Tamanho)",
+                    "Filtro avançado por categorias e faixa de preço",
+                    "Animações fluidas em 60 FPS",
+                    "Fácil conexão com qualquer API REST de backend"
+                ],
+                tech: ["React Native", "Expo", "Redux Toolkit", "Styled Components"],
+                demoUrl: "https://ecommerce-mobile.stackstore.dev",
+                codeSnippet: `// Carrinho de compras reativo com Redux
+import { createSlice } from '@reduxjs/toolkit';
+
+const cartSlice = createSlice({
+  name: 'cart',
+  initialState: { items: [], total: 0 },
+  reducers: {
+    addItem: (state, action) => {
+      state.items.push(action.payload);
+    }
+  }
+});`
+            }
+        ];
+
+        // State variables
+        let currentProducts = [...productsData];
+        let activeCategory = 'all';
+        let searchQuery = '';
+        let currentSort = 'popular';
+        let selectedProductForCheckout = null;
+
+        // Render Products Function
+        function renderProducts() {
+            const container = document.getElementById('productsGrid');
+            const noResults = document.getElementById('noResults');
+
+            // Apply Search & Category Filters
+            let filtered = productsData.filter(item => {
+                const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
+                const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                      item.tech.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                                      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+
+            // Apply Sorting
+            if (currentSort === 'price-low') {
+                filtered.sort((a, b) => a.price - b.price);
+            } else if (currentSort === 'price-high') {
+                filtered.sort((a, b) => b.price - a.price);
+            } else if (currentSort === 'rating') {
+                filtered.sort((a, b) => b.rating - a.rating);
+            } else if (currentSort === 'popular') {
+                filtered.sort((a, b) => b.sales - a.sales);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            container.innerHTML = filtered.map(product => {
+                return `
+                <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 glow-card group relative">
+                    <div>
+                        <!-- Top Bar of Card -->
+                        <div class="flex items-start justify-between gap-3 mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-tr ${product.gradient} flex items-center justify-center text-slate-950 font-bold text-xl shadow-md">
+                                <i class="fa-solid ${product.icon}"></i>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-slate-700/80 text-slate-300 border border-slate-600/60">
+                                ${product.category}
+                            </span>
+                        </div>
+
+                        <!-- Title & Description -->
+                        <h3 class="text-base font-bold text-white group-hover:text-emerald-400 transition-colors line-clamp-1 mb-1">
+                            ${product.title}
+                        </h3>
+                        <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-4">
+                            ${product.description}
+                        </p>
+
+                        <!-- Tech Badges -->
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            ${product.tech.slice(0, 3).map(t => `<span class="text-[10px] bg-slate-900/90 text-slate-300 px-2 py-0.5 rounded border border-slate-700/50 font-mono">${t}</span>`).join('')}
+                            ${product.tech.length > 3 ? `<span class="text-[10px] bg-slate-900/90 text-slate-400 px-1.5 py-0.5 rounded font-mono">+${product.tech.length - 3}</span>` : ''}
+                        </div>
+                    </div>
+
+                    <div>
+                        <!-- Rating and Author -->
+                        <div class="flex items-center justify-between text-xs text-slate-400 border-t border-slate-700/50 pt-3 mb-3">
+                            <div class="flex items-center gap-1 text-amber-400 font-bold">
+                                <i class="fa-solid fa-star text-xs"></i>
+                                <span>${product.rating}</span>
+                                <span class="text-slate-500 font-normal">(${product.reviews})</span>
+                            </div>
+                            <span class="text-[11px] text-slate-400">Por <strong class="text-slate-300">${product.author}</strong></span>
+                        </div>
+
+                        <!-- Price and Action Buttons -->
+                        <div class="flex items-center justify-between gap-2">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block -mb-1">Valor do Código</span>
+                                <span class="text-lg font-black text-emerald-400 font-mono">R$ ${product.price}</span>
+                            </div>
+                            
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="openProductModal(${product.id})" class="p-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs transition-colors" title="Ver detalhes e preview">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <button onclick="startCheckout(${product.id})" class="bg-gradient-to-r from-emerald-400 to-cyan-500 hover:from-emerald-300 hover:to-cyan-400 text-slate-950 font-bold px-3 py-2 rounded-xl text-xs transition-all flex items-center gap-1">
+                                    <span>Comprar</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        // Filter Tabs Event Listeners
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.category-btn').forEach(b => {
+                    b.classList.remove('active', 'bg-emerald-500', 'text-slate-950', 'font-bold');
+                    b.classList.add('bg-slate-800/80', 'text-slate-300');
+                });
+
+                const target = e.currentTarget;
+                target.classList.add('active', 'bg-emerald-500', 'text-slate-950', 'font-bold');
+                target.classList.remove('bg-slate-800/80', 'text-slate-300');
+
+                activeCategory = target.getAttribute('data-category');
+                renderProducts();
+            });
+        });
+
+        // Search Input Listeners
+        const navInput = document.getElementById('navSearchInput');
+        const heroInput = document.getElementById('heroSearchInput');
+        const mobileInput = document.getElementById('mobileSearchInput');
+
+        function syncAndSearch(value) {
+            searchQuery = value;
+            if (navInput) navInput.value = value;
+            if (heroInput) heroInput.value = value;
+            if (mobileInput) mobileInput.value = value;
+            renderProducts();
+        }
+
+        [navInput, heroInput, mobileInput].forEach(input => {
+            if (input) {
+                input.addEventListener('input', (e) => syncAndSearch(e.target.value));
+            }
+        });
+
+        document.getElementById('heroSearchBtn').addEventListener('click', () => {
+            const catalogSection = document.getElementById('catalog');
+            catalogSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        document.getElementById('sortSelect').addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            renderProducts();
+        });
+
+        function setSearchFilter(query) {
+            syncAndSearch(query);
+            const catalogSection = document.getElementById('catalog');
+            catalogSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetFilters() {
+            activeCategory = 'all';
+            searchQuery = '';
+            document.querySelectorAll('.category-btn').forEach(b => {
+                b.classList.remove('active', 'bg-emerald-500', 'text-slate-950', 'font-bold');
+                b.classList.add('bg-slate-800/80', 'text-slate-300');
+            });
+            document.querySelector('.category-btn[data-category="all"]').classList.add('active', 'bg-emerald-500', 'text-slate-950', 'font-bold');
+            syncAndSearch('');
+        }
+
+        // Calculator Slider Handlers
+        const priceRange = document.getElementById('priceRange');
+        const salesRange = document.getElementById('salesRange');
+        const priceValue = document.getElementById('priceValue');
+        const salesValue = document.getElementById('salesValue');
+        const monthlyNet = document.getElementById('monthlyNet');
+        const yearlyNet = document.getElementById('yearlyNet');
+
+        function updateCalculator() {
+            const price = parseFloat(priceRange.value);
+            const sales = parseInt(salesRange.value);
+
+            priceValue.textContent = `R$ ${price.toLocaleString('pt-BR')}`;
+            salesValue.textContent = `${sales} ${sales === 1 ? 'venda' : 'vendas'}`;
+
+            const grossMonthly = price * sales;
+            const feeRate = 0.08; // 8% StackStore Fee
+            const netMonthly = grossMonthly * (1 - feeRate);
+            const netYearly = netMonthly * 12;
+
+            monthlyNet.textContent = `R$ ${netMonthly.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            yearlyNet.textContent = `R$ ${netYearly.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        priceRange.addEventListener('input', updateCalculator);
+        salesRange.addEventListener('input', updateCalculator);
+
+        // Modal Handlers
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function openProductModal(productId) {
+            const product = productsData.find(p => p.id === productId);
+            if (!product) return;
+
+            document.getElementById('modalTitle').textContent = product.title;
+            document.getElementById('modalCategoryBadge').textContent = product.category;
+            document.getElementById('modalFullDescription').textContent = product.description;
+            document.getElementById('modalPrice').textContent = `R$ ${product.price},00`;
+            document.getElementById('modalAuthor').textContent = product.author;
+            document.getElementById('modalUpdated').textContent = product.updated;
+            document.getElementById('modalDemoUrl').textContent = product.demoUrl;
+            document.getElementById('modalDemoAppName').textContent = product.title;
+            document.getElementById('modalCodeSnippet').textContent = product.codeSnippet;
+
+            // Features list
+            const featuresContainer = document.getElementById('modalFeaturesList');
+            featuresContainer.innerHTML = product.features.map(f => `
+                <li class="flex items-center gap-2">
+                    <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+                    <span>${f}</span>
+                </li>
+            `).join('');
+
+            // Tech Badges
+            const techContainer = document.getElementById('modalTechBadges');
+            techContainer.innerHTML = product.tech.map(t => `
+                <span class="text-[10px] bg-slate-900 text-slate-300 px-2 py-1 rounded border border-slate-700 font-mono">${t}</span>
+            `).join('');
+
+            // Buy button click in modal
+            const buyBtn = document.getElementById('modalBuyBtn');
+            buyBtn.onclick = () => {
+                closeModal('productModal');
+                startCheckout(product.id);
+            };
+
+            switchModalTab('demo');
+            openModal('productModal');
+        }
+
+        function switchModalTab(tab) {
+            const demoView = document.getElementById('modalDemoView');
+            const codeView = document.getElementById('modalCodeView');
+            const tabDemoBtn = document.getElementById('modalTabDemo');
+            const tabCodeBtn = document.getElementById('modalTabCode');
+
+            if (tab === 'demo') {
+                demoView.classList.remove('hidden');
+                codeView.classList.add('hidden');
+                tabDemoBtn.className = "text-xs font-semibold px-3 py-1 rounded bg-slate-800 text-emerald-400 border border-slate-700";
+                tabCodeBtn.className = "text-xs font-semibold px-3 py-1 rounded text-slate-400 hover:text-white";
+            } else {
+                demoView.classList.add('hidden');
+                codeView.classList.remove('hidden');
+                tabCodeBtn.className = "text-xs font-semibold px-3 py-1 rounded bg-slate-800 text-emerald-400 border border-slate-700";
+                tabDemoBtn.className = "text-xs font-semibold px-3 py-1 rounded text-slate-400 hover:text-white";
+            }
+        }
+
+        // Checkout Simulator
+        function startCheckout(productId) {
+            const product = productsData.find(p => p.id === productId);
+            if (!product) return;
+
+            selectedProductForCheckout = product;
+            document.getElementById('checkoutProductName').textContent = product.title;
+            document.getElementById('checkoutProductPrice').textContent = `R$ ${product.price},00`;
+
+            openModal('checkoutModal');
+        }
+
+        function copyPixCode() {
+            const dummyPix = "00020126580014BR.GOV.BCB.PIX0136123e4567-e89b-12d3-a456-4266141740005204000053039865405299.005802BR5910STACKSTORE6009SAO_PAULO62070503***6304E2CA";
+            
+            // Clipboard fallback
+            const tempInput = document.createElement('textarea');
+            tempInput.value = dummyPix;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast('Código PIX copiado para a área de transferência!', 'success');
+        }
+
+        function simulateSuccessfulPayment() {
+            closeModal('checkoutModal');
+            showToast(`Pagamento verificado com sucesso! Link de repositório enviado para o seu e-mail.`, 'success');
+        }
+
+        function handleAnnouncementSubmit(e) {
+            e.preventDefault();
+            closeModal('announcementModal');
+            showToast('Sua solicitação de anúncio foi enviada! Nossa equipe revisará o código em até 24h.', 'success');
+            e.target.reset();
+        }
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+
+        // Toast Notification Function
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            const icon = type === 'success' ? 'fa-circle-check text-emerald-400' : 'fa-circle-info text-cyan-400';
+            
+            toast.className = `pointer-events-auto bg-slate-800 border border-slate-700 text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transform transition-all duration-300 translate-y-2 opacity-0 max-w-sm`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icon} text-base"></i>
+                <span class="flex-1">${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate In
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            // Remove after 4s
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Initial Render
+        window.addEventListener('DOMContentLoaded', () => {
+            renderProducts();
+            updateCalculator();
+        });
+    </script>
+</body>
+</html>
